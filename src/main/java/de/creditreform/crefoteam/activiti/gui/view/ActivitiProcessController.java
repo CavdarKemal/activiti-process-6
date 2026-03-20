@@ -12,8 +12,6 @@ import java.util.concurrent.TimeoutException;
  */
 public class ActivitiProcessController {
 
-    private static final String ENV_NAME = "JUNIT";
-    private static final String PROCESS_DEF_KEY = ENV_NAME + "-TestAutomationProcess";
     private static final String MAIN_BPMN = "bpmns/CteAutomatedTestProcess.bpmn";
     private static final String SUB_BPMN = "bpmns/CteAutomatedTestProcessSUB.bpmn";
 
@@ -22,6 +20,8 @@ public class ActivitiProcessController {
     private Integer processInstanceID;
     private volatile boolean running = false;
     private int taskCount = 0;
+    private String envName = "LOCAL";
+    private String processDefKey = envName + "-TestAutomationProcess";
 
     private enum StartAction { NEW, RESUME, CANCEL }
 
@@ -47,9 +47,12 @@ public class ActivitiProcessController {
      * @param service   Activiti-Service
      * @param meinKey   Business-Key
      * @param userName  Benutzername fuer Task-Claim
+     * @param envName   Umgebungsname (z.B. LOCAL, DEV) — bestimmt den BPMN-Deployment-Prefix
      */
-    public void run(CteActivitiServiceRestImpl service, String meinKey, String userName) throws Exception {
-        callback.onLog(String.format("Pruefe ob Prozess '%s' mit Key '%s' bereits laeuft...", PROCESS_DEF_KEY, meinKey));
+    public void run(CteActivitiServiceRestImpl service, String meinKey, String userName, String envName) throws Exception {
+        this.envName = envName;
+        this.processDefKey = envName + "-TestAutomationProcess";
+        callback.onLog(String.format("Pruefe ob Prozess '%s' mit Key '%s' bereits laeuft...", processDefKey, meinKey));
         StartAction action = checkExistingProcess(service, meinKey);
 
         switch (action) {
@@ -65,9 +68,9 @@ public class ActivitiProcessController {
             case NEW:
                 callback.onLog("Deploye BPMNs...");
                 deployBpmns(service);
-                callback.onLog(String.format("Starte Prozess '%s'...", PROCESS_DEF_KEY));
+                callback.onLog(String.format("Starte Prozess '%s'...", processDefKey));
                 Map<String, Object> startParams = buildProcessParams(meinKey);
-                CteActivitiProcess process = service.startProcess(PROCESS_DEF_KEY, startParams);
+                CteActivitiProcess process = service.startProcess(processDefKey, startParams);
                 processInstanceID = process.getId();
                 taskCount = 0;
                 callback.onLog(String.format("Prozess gestartet: ID = %d", processInstanceID));
@@ -85,7 +88,7 @@ public class ActivitiProcessController {
     private StartAction checkExistingProcess(CteActivitiServiceRestImpl service, String meinKey) throws Exception {
         Map<String, Object> params = new HashMap<>();
         params.put(ActivitProcessConstants.UT_TASK_PARAM_NAME_MEIN_KEY, meinKey);
-        List<CteActivitiProcess> existing = service.queryProcessInstances(PROCESS_DEF_KEY, params);
+        List<CteActivitiProcess> existing = service.queryProcessInstances(processDefKey, params);
 
         if (existing.isEmpty()) {
             callback.onLog("Kein laufender Prozess gefunden.");
@@ -195,7 +198,7 @@ public class ActivitiProcessController {
     }
 
     private void deployBpmns(CteActivitiServiceRestImpl service) throws Exception {
-        List<CteActivitiDeployment> oldDeployments = service.listDeploymentsForNameLike(ENV_NAME);
+        List<CteActivitiDeployment> oldDeployments = service.listDeploymentsForNameLike(envName);
         for (CteActivitiDeployment d : oldDeployments) {
             callback.onLog(String.format("Loesche altes Deployment '%s'...", d.getName()));
             try {
@@ -206,13 +209,13 @@ public class ActivitiProcessController {
         }
 
         String mainBpmnPath = getClass().getClassLoader().getResource(MAIN_BPMN).getPath();
-        File mainFile = service.prepareBpmnFileForEnvironment(mainBpmnPath, ENV_NAME);
+        File mainFile = service.prepareBpmnFileForEnvironment(mainBpmnPath, envName);
         service.uploadDeploymentFile(mainFile);
         mainFile.delete();
         callback.onLog(String.format("Deployed: %s", MAIN_BPMN));
 
         String subBpmnPath = getClass().getClassLoader().getResource(SUB_BPMN).getPath();
-        File subFile = service.prepareBpmnFileForEnvironment(subBpmnPath, ENV_NAME);
+        File subFile = service.prepareBpmnFileForEnvironment(subBpmnPath, envName);
         service.uploadDeploymentFile(subFile);
         subFile.delete();
         callback.onLog(String.format("Deployed: %s", SUB_BPMN));

@@ -1,6 +1,8 @@
 package de.creditreform.crefoteam.activiti.gui.view;
 
 import de.creditreform.crefoteam.activiti.CteActivitiServiceRestImpl;
+import de.creditreform.crefoteam.activiti.config.ActivitiEnvironment;
+import de.creditreform.crefoteam.activiti.config.ActivitiEnvironmentManager;
 import de.creditreform.crefoteam.activiti.gui.design.ActivitProzessMonitor;
 import de.creditreform.crefoteam.cte.rest.RestInvokerConfig;
 
@@ -39,10 +41,10 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
     }
 
     private void initControls() {
-        getComboBoxActivitiHost().setEditable(true);
-        getComboBoxActivitiHost().addItem("http://localhost:9090");
-        getComboBoxActivitiHost().setSelectedIndex(0);
-        getTextFieldUser().setText("kermit");
+        // Host und User werden aus ActivitiEnvironmentManager geladen, nicht mehr manuell eingegeben
+        getComboBoxActivitiHost().setEnabled(false);
+        getTextFieldUser().setEnabled(false);
+        refreshEnvironmentDisplay();
 
         JPanel controlsPanel = getPanelProcessControls();
         controlsPanel.add(new JLabel("Business-Key:"), new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
@@ -96,10 +98,16 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
         controller.stop();
     }
 
+    private void refreshEnvironmentDisplay() {
+        ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
+        getComboBoxActivitiHost().removeAllItems();
+        getComboBoxActivitiHost().addItem(env.getUrl());
+        getTextFieldUser().setText(env.getUser());
+    }
+
     private CteActivitiServiceRestImpl createService() {
-        String url = (String) getComboBoxActivitiHost().getSelectedItem();
-        String user = getTextFieldUser().getText().trim();
-        RestInvokerConfig config = new RestInvokerConfig(url, user, user);
+        ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
+        RestInvokerConfig config = new RestInvokerConfig(env.getUrl(), env.getUser(), env.getPassword());
         return new CteActivitiServiceRestImpl(config);
     }
 
@@ -117,8 +125,8 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
         workerThread = new Thread(() -> {
             try {
                 CteActivitiServiceRestImpl service = createService();
-                String userName = getTextFieldUser().getText().trim();
-                controller.run(service, meinKey, userName);
+                ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
+                controller.run(service, meinKey, env.getUser(), env.getEnvName());
             } catch (Exception ex) {
                 if (controller.isRunning()) {
                     onLog("FEHLER: " + ex.getMessage());
