@@ -3,6 +3,8 @@ package de.creditreform.crefoteam.activiti.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -10,27 +12,29 @@ import java.util.Properties;
  * Verwaltet Activiti-Umgebungen aus *-activiti.properties-Dateien
  * im Arbeitsverzeichnis.
  * <p>
- * Dateiformat: local-activiti.properties, dev-activiti.properties, ...
- * Properties: activiti.url, activiti.user, activiti.password, activiti.env.name
+ * Dateiformat: ene-activiti.properties, gee-activiti.properties, ...
+ * Properties: activiti.url (mehrere URLs mit ";;" getrennt), activiti.user, activiti.password
+ * <p>
+ * ENV_NAME und Business-Key leiten sich aus dem Datei-Praefix ab
+ * (z.B. "ene" aus "ene-activiti.properties" -> ENV_NAME = "ENE").
  */
 public class ActivitiEnvironmentManager {
 
     private static final String FILE_SUFFIX = "-activiti.properties";
-    private static final ActivitiEnvironment DEFAULT = new ActivitiEnvironment(
-            "default",
-            "http://localhost:9090",
-            "kermit",
-            "kermit",
-            "LOCAL"
-    );
+    private static final String URL_SEPARATOR = ";;";
 
-    private static volatile ActivitiEnvironment current = DEFAULT;
+    private static final ActivitiEnvironment DEFAULT = new ActivitiEnvironment(
+            "local",
+            Collections.singletonList("http://localhost:9090"),
+            "kermit",
+            "kermit"
+    );
 
     private ActivitiEnvironmentManager() {}
 
     /**
      * Gibt alle Umgebungsnamen (Datei-Praefix) im Arbeitsverzeichnis zurueck.
-     * Beispiel: "local-activiti.properties" -> "local"
+     * Beispiel: "ene-activiti.properties" -> "ene"
      */
     public static List<String> findEnvironmentNames() {
         List<String> names = new ArrayList<>();
@@ -47,6 +51,7 @@ public class ActivitiEnvironmentManager {
 
     /**
      * Laedt eine Umgebung aus der entsprechenden Properties-Datei.
+     * activiti.url kann mehrere URLs enthalten, getrennt durch ";;".
      * Gibt die Default-Umgebung zurueck, wenn die Datei nicht gefunden wird.
      */
     public static ActivitiEnvironment load(String name) {
@@ -57,25 +62,32 @@ public class ActivitiEnvironmentManager {
         try (FileInputStream fis = new FileInputStream(file)) {
             Properties props = new Properties();
             props.load(fis);
-            String url     = props.getProperty("activiti.url",      DEFAULT.getUrl());
-            String user    = props.getProperty("activiti.user",     DEFAULT.getUser());
-            String pass    = props.getProperty("activiti.password", DEFAULT.getPassword());
-            String envName = props.getProperty("activiti.env.name", name.toUpperCase());
-            return new ActivitiEnvironment(name, url, user, pass, envName);
+            String urlRaw = props.getProperty("activiti.url", DEFAULT.getUrl());
+            String user   = props.getProperty("activiti.user",     DEFAULT.getUser());
+            String pass   = props.getProperty("activiti.password", DEFAULT.getPassword());
+            List<String> urls = parseUrls(urlRaw);
+            return new ActivitiEnvironment(name, urls, user, pass);
         } catch (Exception e) {
             return DEFAULT;
         }
     }
 
-    public static ActivitiEnvironment getCurrent() {
-        return current;
-    }
-
-    public static void setCurrent(ActivitiEnvironment env) {
-        current = env != null ? env : DEFAULT;
-    }
-
     public static ActivitiEnvironment getDefault() {
         return DEFAULT;
+    }
+
+    private static List<String> parseUrls(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return Collections.singletonList("");
+        }
+        String[] parts = raw.split(URL_SEPARATOR, -1);
+        List<String> urls = new ArrayList<>();
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                urls.add(trimmed);
+            }
+        }
+        return urls.isEmpty() ? Collections.singletonList(raw.trim()) : urls;
     }
 }

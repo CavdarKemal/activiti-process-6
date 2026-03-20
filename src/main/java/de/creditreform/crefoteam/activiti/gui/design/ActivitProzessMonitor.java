@@ -33,18 +33,6 @@ public class ActivitProzessMonitor extends JPanel {
         return comboBoxActivitiHost;
     }
 
-    public JLabel getLabelUser() {
-        return labelUser;
-    }
-
-    public JTextField getTextFieldUser() {
-        return textFieldUser;
-    }
-
-    public JLabel getLabelPassword() {
-        return labelPassword;
-    }
-
     public JButton getButtonStartProcess() {
         return buttonStartProcess;
     }
@@ -53,16 +41,18 @@ public class ActivitProzessMonitor extends JPanel {
         return buttonStopUserTasksThread;
     }
 
+    public JComboBox getComboBoxEnvironment() {
+        return comboBoxEnvironment;
+    }
+
     private void initComponents() {
         // JFormDesigner - Component initialization - DO NOT MODIFY  //GEN-BEGIN:initComponents  @formatter:off
         ResourceBundle bundle = ResourceBundle.getBundle("de.cavdar.gui.design.form");
         panelProcessControls = new JPanel();
+        labelEnvironment = new JLabel();
+        comboBoxEnvironment = new JComboBox();
         labelActivitiHost = new JLabel();
         comboBoxActivitiHost = new JComboBox();
-        labelUser = new JLabel();
-        textFieldUser = new JTextField();
-        labelPassword = new JLabel();
-        passwordPassword = new JPasswordField();
         buttonStartProcess = new JButton();
         buttonStopUserTasksThread = new JButton();
         panelProcessMonitor = new JPanel();
@@ -75,36 +65,27 @@ public class ActivitProzessMonitor extends JPanel {
             panelProcessControls.setBorder(new EtchedBorder());
             panelProcessControls.setLayout(new GridBagLayout());
             ((GridBagLayout)panelProcessControls.getLayout()).columnWidths = new int[] {0, 0, 0, 0, 0, 0};
-            ((GridBagLayout)panelProcessControls.getLayout()).rowHeights = new int[] {0, 0, 0, 0};
+            ((GridBagLayout)panelProcessControls.getLayout()).rowHeights = new int[] {0, 0, 0};
             ((GridBagLayout)panelProcessControls.getLayout()).columnWeights = new double[] {0.0, 1.0, 0.0, 1.0, 0.0, 1.0E-4};
-            ((GridBagLayout)panelProcessControls.getLayout()).rowWeights = new double[] {0.0, 0.0, 0.0, 1.0E-4};
+            ((GridBagLayout)panelProcessControls.getLayout()).rowWeights = new double[] {0.0, 0.0, 1.0E-4};
+
+            //---- labelEnvironment ----
+            labelEnvironment.setText("Umgebung:");
+            panelProcessControls.add(labelEnvironment, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(0, 0, 5, 5), 0, 0));
+            panelProcessControls.add(comboBoxEnvironment, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
+                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+                new Insets(2, 2, 7, 7), 0, 0));
 
             //---- labelActivitiHost ----
             labelActivitiHost.setText(bundle.getString("ActivitProzessMonitor.labelActivitiHost.text"));
-            panelProcessControls.add(labelActivitiHost, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
+            panelProcessControls.add(labelActivitiHost, new GridBagConstraints(2, 0, 1, 1, 0.0, 0.0,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(2, 2, 7, 7), 0, 0));
-            panelProcessControls.add(comboBoxActivitiHost, new GridBagConstraints(1, 0, 4, 1, 0.0, 0.0,
+            panelProcessControls.add(comboBoxActivitiHost, new GridBagConstraints(3, 0, 2, 1, 0.0, 0.0,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(2, 2, 7, 2), 0, 0));
-
-            //---- labelUser ----
-            labelUser.setText("User:");
-            panelProcessControls.add(labelUser, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(2, 2, 7, 7), 0, 0));
-            panelProcessControls.add(textFieldUser, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(2, 2, 7, 7), 0, 0));
-
-            //---- labelPassword ----
-            labelPassword.setText("Password:");
-            panelProcessControls.add(labelPassword, new GridBagConstraints(2, 1, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(2, 2, 7, 7), 0, 0));
-            panelProcessControls.add(passwordPassword, new GridBagConstraints(3, 1, 2, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-                new Insets(0, 0, 5, 0), 0, 0));
 
             //---- buttonStartProcess ----
             buttonStartProcess.setText(bundle.getString("ActivitProzessMonitor.buttonStartProcess.text"));
@@ -112,7 +93,7 @@ public class ActivitProzessMonitor extends JPanel {
             buttonStartProcess.setMinimumSize(new Dimension(80, 24));
             buttonStartProcess.setMaximumSize(new Dimension(120, 24));
             buttonStartProcess.setPreferredSize(new Dimension(80, 24));
-            panelProcessControls.add(buttonStartProcess, new GridBagConstraints(3, 2, 1, 1, 0.0, 0.0,
+            panelProcessControls.add(buttonStartProcess, new GridBagConstraints(0, 1, 4, 1, 0.0, 0.0,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(2, 2, 2, 7), 0, 0));
 
@@ -123,7 +104,7 @@ public class ActivitProzessMonitor extends JPanel {
             buttonStopUserTasksThread.setMinimumSize(new Dimension(24, 24));
             buttonStopUserTasksThread.setMaximumSize(new Dimension(24, 24));
             buttonStopUserTasksThread.setPreferredSize(new Dimension(24, 24));
-            panelProcessControls.add(buttonStopUserTasksThread, new GridBagConstraints(4, 2, 1, 1, 0.0, 0.0,
+            panelProcessControls.add(buttonStopUserTasksThread, new GridBagConstraints(4, 1, 1, 1, 0.0, 0.0,
                 GridBagConstraints.CENTER, GridBagConstraints.BOTH,
                 new Insets(2, 2, 2, 2), 0, 0));
         }
@@ -144,12 +125,10 @@ public class ActivitProzessMonitor extends JPanel {
 
     // JFormDesigner - Variables declaration - DO NOT MODIFY  //GEN-BEGIN:variables  @formatter:off
     private JPanel panelProcessControls;
+    private JLabel labelEnvironment;
+    private JComboBox comboBoxEnvironment;
     private JLabel labelActivitiHost;
     private JComboBox comboBoxActivitiHost;
-    private JLabel labelUser;
-    private JTextField textFieldUser;
-    private JLabel labelPassword;
-    private JPasswordField passwordPassword;
     private JButton buttonStartProcess;
     private JButton buttonStopUserTasksThread;
     private JPanel panelProcessMonitor;

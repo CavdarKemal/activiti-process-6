@@ -1,7 +1,5 @@
 package de.creditreform.crefoteam.activiti.gui;
 
-import de.creditreform.crefoteam.activiti.config.ActivitiEnvironment;
-import de.creditreform.crefoteam.activiti.config.ActivitiEnvironmentManager;
 import de.creditreform.crefoteam.activiti.gui.design.ActivitProcessTester;
 import de.creditreform.crefoteam.activiti.gui.view.ActivitProzessMonitorView;
 
@@ -14,7 +12,7 @@ import java.util.List;
 
 /**
  * MDI-Hauptfenster: Verwaltet mehrere ActivitProzessMonitorView-InternalFrames.
- * Jedes InternalFrame laeuft mit eigenem Worker-Thread.
+ * Jedes InternalFrame laeuft mit eigenem Worker-Thread und eigener Umgebungsauswahl.
  */
 public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
 
@@ -27,7 +25,6 @@ public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
     private JButton buttonTileHorizontal;
     private JButton buttonTileVertical;
     private JButton buttonCascade;
-    private JComboBox<String> envComboBox;
 
     public ActivitProcessTesterMainFrame() {
         super();
@@ -62,15 +59,6 @@ public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
         buttonCascade.setToolTipText("Fenster kaskadieren");
         toolBar.add(buttonCascade);
 
-        // Umgebungsauswahl
-        toolBar.addSeparator();
-        toolBar.add(new JLabel("Umgebung: "));
-        envComboBox = new JComboBox<>();
-        envComboBox.setMaximumSize(new Dimension(160, 24));
-        envComboBox.setToolTipText("Activiti-Umgebung auswaehlen (*-activiti.properties)");
-        toolBar.add(envComboBox);
-        initEnvironmentSelector();
-
         // Layout
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(toolBar, BorderLayout.NORTH);
@@ -80,31 +68,6 @@ public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
 
         // Ersten Monitor automatisch oeffnen
         addNewMonitor();
-    }
-
-    private void initEnvironmentSelector() {
-        List<String> names = ActivitiEnvironmentManager.findEnvironmentNames();
-        if (names.isEmpty()) {
-            envComboBox.addItem(ActivitiEnvironmentManager.getDefault().getName());
-            ActivitiEnvironmentManager.setCurrent(ActivitiEnvironmentManager.getDefault());
-        } else {
-            for (String name : names) {
-                envComboBox.addItem(name);
-            }
-            String first = names.get(0);
-            ActivitiEnvironmentManager.setCurrent(ActivitiEnvironmentManager.load(first));
-        }
-        envComboBox.addActionListener(e -> {
-            String selected = (String) envComboBox.getSelectedItem();
-            if (selected != null) {
-                ActivitiEnvironment env = ActivitiEnvironmentManager.load(selected);
-                ActivitiEnvironmentManager.setCurrent(env);
-                setTitle("Activiti 6 - Prozess-Tester (MDI) [" + env.getEnvName() + " | " + env.getUrl() + "]");
-            }
-        });
-        // Titel initial setzen
-        ActivitiEnvironment current = ActivitiEnvironmentManager.getCurrent();
-        setTitle("Activiti 6 - Prozess-Tester (MDI) [" + current.getEnvName() + " | " + current.getUrl() + "]");
     }
 
     private void initListeners() {
@@ -158,7 +121,6 @@ public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
     }
 
     private void onExit() {
-        // Alle laufenden Monitore benachrichtigen
         boolean hasRunning = internalFrames.stream()
                 .map(f -> (ActivitProzessMonitorView) f.getContentPane())
                 .anyMatch(ActivitProzessMonitorView::isRunning);
@@ -172,7 +134,6 @@ public class ActivitProcessTesterMainFrame extends ActivitProcessTester {
             if (option != JOptionPane.YES_OPTION) return;
         }
 
-        // Alle Monitore herunterfahren
         for (JInternalFrame frame : new ArrayList<>(internalFrames)) {
             ActivitProzessMonitorView view = (ActivitProzessMonitorView) frame.getContentPane();
             view.shutdown();

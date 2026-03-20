@@ -14,7 +14,7 @@ new FormModel {
 			}
 			add( new FormContainer( "javax.swing.JPanel", new FormLayoutManager( class java.awt.GridBagLayout ) {
 				"$columnSpecs": "0, 0:1.0, 0, 0:1.0, 0"
-				"$rowSpecs": "0, 0, 0"
+				"$rowSpecs": "0, 0"
 				"$hGap": 5
 				"$vGap": 5
 				"$alignLeft": true
@@ -26,6 +26,19 @@ new FormModel {
 					"JavaCodeGenerator.variableGetter": true
 				}
 				add( new FormComponent( "javax.swing.JLabel" ) {
+					name: "labelEnvironment"
+					"text": "Umgebung:"
+				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) )
+				add( new FormComponent( "javax.swing.JComboBox" ) {
+					name: "comboBoxEnvironment"
+					auxiliary() {
+						"JavaCodeGenerator.variableGetter": true
+					}
+				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
+					"insets": new java.awt.Insets( 2, 2, 2, 2 )
+					"gridx": 1
+				} )
+				add( new FormComponent( "javax.swing.JLabel" ) {
 					name: "labelActivitiHost"
 					"text": new FormMessage( null, "ActivitProzessMonitor.labelActivitiHost.text" )
 					auxiliary() {
@@ -33,6 +46,7 @@ new FormModel {
 					}
 				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
 					"insets": new java.awt.Insets( 2, 2, 2, 2 )
+					"gridx": 2
 				} )
 				add( new FormComponent( "javax.swing.JComboBox" ) {
 					name: "comboBoxActivitiHost"
@@ -41,45 +55,7 @@ new FormModel {
 					}
 				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
 					"insets": new java.awt.Insets( 2, 2, 2, 2 )
-					"gridx": 1
-					"gridwidth": 4
-				} )
-				add( new FormComponent( "javax.swing.JLabel" ) {
-					name: "labelUser"
-					"text": "User:"
-					auxiliary() {
-						"JavaCodeGenerator.variableGetter": true
-					}
-				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
-					"gridy": 1
-					"insets": new java.awt.Insets( 2, 2, 2, 2 )
-				} )
-				add( new FormComponent( "javax.swing.JTextField" ) {
-					name: "textFieldUser"
-					auxiliary() {
-						"JavaCodeGenerator.variableGetter": true
-					}
-				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
-					"gridy": 1
-					"gridx": 1
-					"insets": new java.awt.Insets( 2, 2, 2, 2 )
-				} )
-				add( new FormComponent( "javax.swing.JLabel" ) {
-					name: "labelPassword"
-					"text": "Password:"
-					auxiliary() {
-						"JavaCodeGenerator.variableGetter": true
-					}
-				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
-					"gridx": 2
-					"gridy": 1
-					"insets": new java.awt.Insets( 2, 2, 2, 2 )
-				} )
-				add( new FormComponent( "javax.swing.JPasswordField" ) {
-					name: "passwordPassword"
-				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
 					"gridx": 3
-					"gridy": 1
 					"gridwidth": 2
 				} )
 				add( new FormComponent( "javax.swing.JButton" ) {
@@ -94,8 +70,8 @@ new FormModel {
 					}
 				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
 					"insets": new java.awt.Insets( 2, 2, 2, 2 )
-					"gridx": 3
-					"gridy": 2
+					"gridy": 1
+					"gridwidth": 4
 				} )
 				add( new FormComponent( "javax.swing.JButton" ) {
 					name: "buttonStopUserTasksThread"
@@ -111,7 +87,7 @@ new FormModel {
 				}, new FormLayoutConstraints( class com.jformdesigner.runtime.GridBagConstraintsEx ) {
 					"insets": new java.awt.Insets( 2, 2, 2, 2 )
 					"gridx": 4
-					"gridy": 2
+					"gridy": 1
 				} )
 			}, new FormLayoutConstraints( class java.lang.String ) {
 				"value": "North"
@@ -134,7 +110,7 @@ new FormModel {
 			} )
 		}, new FormLayoutConstraints( null ) {
 			"location": new java.awt.Point( 0, 0 )
-			"size": new java.awt.Dimension( 400, 300 )
+			"size": new java.awt.Dimension( 710, 300 )
 		} )
 	}
 }

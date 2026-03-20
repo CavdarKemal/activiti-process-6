@@ -14,10 +14,12 @@ import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Prozess-Monitor: Zeigt ein Activiti-Prozess-Diagramm und steuert den Prozess.
  * Jede Instanz laeuft mit eigenem Worker-Thread (multithreaded MDI).
+ * Jede Instanz hat ihre eigene Umgebungsauswahl (comboBoxEnvironment + comboBoxActivitiHost).
  * <p>
  * Die gesamte Prozess-Logik ist in {@link ActivitiProcessController} ausgelagert.
  */
@@ -26,11 +28,11 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
     // GUI-Komponenten
     private final JLabel processImageLabel = new JLabel();
     private final JTextArea logArea = new JTextArea();
-    private final JTextField meinKeyField = new JTextField("GUI-Test");
     private final JLabel statusLabel = new JLabel("Bereit");
     private final JProgressBar progressBar = new JProgressBar();
     private JPanel diagramPanel;
 
+    private ActivitiEnvironment currentEnvironment;
     private final ActivitiProcessController controller = new ActivitiProcessController(this);
     private Thread workerThread;
 
@@ -41,16 +43,7 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
     }
 
     private void initControls() {
-        // Host und User werden aus ActivitiEnvironmentManager geladen, nicht mehr manuell eingegeben
-        getComboBoxActivitiHost().setEnabled(false);
-        getTextFieldUser().setEnabled(false);
-        refreshEnvironmentDisplay();
-
-        JPanel controlsPanel = getPanelProcessControls();
-        controlsPanel.add(new JLabel("Business-Key:"), new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(2, 2, 2, 7), 0, 0));
-        controlsPanel.add(meinKeyField, new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0,
-                GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(2, 2, 2, 7), 0, 0));
+        initEnvironmentSelector();
 
         JPanel monitorPanel = getPanelProcessMonitor();
         monitorPanel.setLayout(new BorderLayout(5, 5));
@@ -83,6 +76,38 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
         getButtonStopUserTasksThread().setEnabled(false);
     }
 
+    private void initEnvironmentSelector() {
+        JComboBox<String> envCombo = getComboBoxEnvironment();
+        List<String> names = ActivitiEnvironmentManager.findEnvironmentNames();
+        envCombo.removeAllItems();
+        if (names.isEmpty()) {
+            currentEnvironment = ActivitiEnvironmentManager.getDefault();
+            envCombo.addItem(currentEnvironment.getName());
+        } else {
+            for (String name : names) {
+                envCombo.addItem(name);
+            }
+            currentEnvironment = ActivitiEnvironmentManager.load(names.get(0));
+        }
+        refreshHostCombo(currentEnvironment);
+
+        envCombo.addActionListener(e -> {
+            String selected = (String) envCombo.getSelectedItem();
+            if (selected != null) {
+                currentEnvironment = ActivitiEnvironmentManager.load(selected);
+                refreshHostCombo(currentEnvironment);
+            }
+        });
+    }
+
+    private void refreshHostCombo(ActivitiEnvironment env) {
+        JComboBox hostCombo = getComboBoxActivitiHost();
+        hostCombo.removeAllItems();
+        for (String url : env.getUrls()) {
+            hostCombo.addItem(url);
+        }
+    }
+
     private void initListeners() {
         getButtonStartProcess().addActionListener(e -> onStart());
         getButtonStopUserTasksThread().addActionListener(e -> controller.stop());
@@ -98,25 +123,15 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
         controller.stop();
     }
 
-    private void refreshEnvironmentDisplay() {
-        ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
-        getComboBoxActivitiHost().removeAllItems();
-        getComboBoxActivitiHost().addItem(env.getUrl());
-        getTextFieldUser().setText(env.getUser());
-    }
-
     private CteActivitiServiceRestImpl createService() {
-        ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
-        RestInvokerConfig config = new RestInvokerConfig(env.getUrl(), env.getUser(), env.getPassword());
+        String selectedUrl = (String) getComboBoxActivitiHost().getSelectedItem();
+        String url = (selectedUrl != null && !selectedUrl.isEmpty()) ? selectedUrl : currentEnvironment.getUrl();
+        RestInvokerConfig config = new RestInvokerConfig(url, currentEnvironment.getUser(), currentEnvironment.getPassword());
         return new CteActivitiServiceRestImpl(config);
     }
 
     private void onStart() {
-        String meinKey = meinKeyField.getText().trim();
-        if (meinKey.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Bitte Business-Key angeben!", "Fehler", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        String meinKey = currentEnvironment.getMeinKey();
 
         setInputEnabled(false);
         getButtonStopUserTasksThread().setEnabled(true);
@@ -125,8 +140,7 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
         workerThread = new Thread(() -> {
             try {
                 CteActivitiServiceRestImpl service = createService();
-                ActivitiEnvironment env = ActivitiEnvironmentManager.getCurrent();
-                controller.run(service, meinKey, env.getUser(), env.getEnvName());
+                controller.run(service, meinKey, currentEnvironment.getUser(), currentEnvironment.getEnvName());
             } catch (Exception ex) {
                 if (controller.isRunning()) {
                     onLog("FEHLER: " + ex.getMessage());
@@ -218,9 +232,8 @@ public class ActivitProzessMonitorView extends ActivitProzessMonitor implements 
 
     private void setInputEnabled(boolean enabled) {
         SwingUtilities.invokeLater(() -> {
+            getComboBoxEnvironment().setEnabled(enabled);
             getComboBoxActivitiHost().setEnabled(enabled);
-            getTextFieldUser().setEnabled(enabled);
-            meinKeyField.setEnabled(enabled);
             getButtonStartProcess().setEnabled(enabled);
         });
     }
