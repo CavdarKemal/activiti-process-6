@@ -1,6 +1,7 @@
-package de.creditreform.crefoteam.activiti.gui.view;
+package de.creditreform.crefoteam.activiti.gui;
 
 import de.creditreform.crefoteam.activiti.gui.design.ActivitProcessTester;
+import de.creditreform.crefoteam.activiti.gui.view.ActivitProzessMonitorView;
 
 import javax.swing.*;
 import java.awt.*;

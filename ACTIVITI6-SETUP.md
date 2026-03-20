@@ -224,7 +224,7 @@ mvn exec:java -Dexec.mainClass="de.creditreform.crefoteam.activiti.ActivitiProce
 
 ### MDI-GUI (Multi-Prozess)
 ```
-mvn exec:java -Dexec.mainClass="de.creditreform.crefoteam.activiti.gui.view.ActivitProcessTesterMainFrame"
+mvn exec:java -Dexec.mainClass="de.creditreform.crefoteam.activiti.gui.ActivitProcessTesterMainFrame"
 ```
 
 Funktionen:
